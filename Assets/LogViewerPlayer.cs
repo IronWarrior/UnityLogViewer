@@ -20,7 +20,10 @@ namespace LogViewer
             logViewer = new LogViewerOnGUI();
 
 #if UNITY_EDITOR
-            logViewer.SetLog(LogFile.LoadFromFile(testLogFilePath));
+            if (File.Exists(testLogFilePath))
+            {
+                logViewer.SetLog(LogFile.LoadFromFile(testLogFilePath));
+            }
 #else
             UnityDragAndDropHook.InstallHook();
             UnityDragAndDropHook.OnDroppedFiles += OnDroppedFiles;
