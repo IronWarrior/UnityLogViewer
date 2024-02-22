@@ -2,6 +2,7 @@
 using B83.Win32;
 using System.IO;
 #endif
+using System.IO;
 using UnityEngine;
 
 namespace LogViewer
@@ -23,6 +24,18 @@ namespace LogViewer
 #else
             UnityDragAndDropHook.InstallHook();
             UnityDragAndDropHook.OnDroppedFiles += OnDroppedFiles;
+
+            string[] args = System.Environment.GetCommandLineArgs();
+
+            if (args.Length > 1)
+            {
+                string path = args[1];
+
+                if (File.Exists(path))
+                {
+                    logViewer.SetLog(LogFile.LoadFromFile(path));
+                }
+            }
 #endif
         }
 
