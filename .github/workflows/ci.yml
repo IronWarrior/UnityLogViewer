@@ -1,0 +1,20 @@
+name: CI
+on:
+    push:
+        branches:
+            - main
+jobs:
+    split-upm:
+        name: split upm branch
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: split upm branch
+              run: |
+                  git subtree split -P "$PKG_ROOT" -b upm
+                  git push -u origin upm
+              env:
+                  PKG_ROOT: Assets/LogViewer
