@@ -1,0 +1,22 @@
+{
+    "name": "unitylogviewer",
+    "displayName": "UnityLogViewer",
+    "description": "Displays Player.log files in a similar view to the standard Unity Editor Console.",
+    "version": "1.0.0",
+    "unity": "2020.3",
+    "dependencies": {},
+    "author": {
+        "name": "IronWarrior",
+        "url": "https://github.com/IronWarrior"
+    },
+    "keywords": [
+        "editor",
+        "c#",
+        "csharp",
+        "csproj",
+        "unity",
+        "unity3d",
+        "log"
+    ],
+    "repository": "https://github.com/IronWarrior/UnityLogViewer"
+}
