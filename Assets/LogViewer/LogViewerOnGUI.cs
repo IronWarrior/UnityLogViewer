@@ -62,12 +62,11 @@ namespace LogViewer
 
             logListScrollPosition = GUILayout.BeginScrollView(logListScrollPosition, GUIStyle.none, GUI.skin.verticalScrollbar, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
-            string selectedLogContents = string.Empty;
+            const float entryHeight = 40f;
 
-            if (selectedLogIndex != -1)
-            {
-                selectedLogContents = logFile.Events[selectedLogIndex].Content;
-            }
+            int startingIndex = Mathf.FloorToInt(logListScrollPosition.y / entryHeight);
+
+            int visibleLogs = 0;
 
             for (int i = 0; i < logFile.Events.Count; i++)
             {
@@ -76,38 +75,66 @@ namespace LogViewer
                 if ((log.EventType & visibleEventTypes) == 0)
                     continue;
 
-                GUIStyle style;
-
-                if (selectedLogIndex == i)
-                    style = Styles.SelectedBackground;
-                else
-                    style = i % 2 == 0 ? Styles.EvenBackground : Styles.OddBackground;
-
-                GUILayout.BeginHorizontal(style, GUILayout.Height(40));
-
-                bool clicked = false;
-
-                if (log.EventType == LogFile.EventTypes.Message)
-                    clicked = GUILayout.Button(Styles.iconInfo, Styles.IconStyle) | clicked;
-                else
-                    clicked = GUILayout.Button(Styles.iconError, Styles.IconStyle) | clicked;
-
-                clicked = GUILayout.Button(log.Summary, style, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)) | clicked;
-
-                if (clicked)
+                if (i < startingIndex || i > startingIndex + 20)
                 {
-                    selectedLogIndex = i;
+                    visibleLogs++;
+                    continue;
+                }
+                else if (i == startingIndex)
+                {
+                    GUILayout.Space(visibleLogs * entryHeight);
+                    visibleLogs = 0;
                 }
 
-                GUILayout.EndHorizontal();
+                bool selected = selectedLogIndex == i;
+                bool even = i % 2 == 0;
+
+                if (DrawLogSummary(log, selected, even, entryHeight))
+                {
+                    selectedLogIndex = i;
+                }               
             }
+
+            GUILayout.Space(entryHeight * visibleLogs);
 
             GUILayout.EndScrollView();
 
             logScrollPosition = GUILayout.BeginScrollView(logScrollPosition, GUILayout.Height(256));
 
+            string selectedLogContents = string.Empty;
+
+            if (selectedLogIndex != -1)
+            {
+                selectedLogContents = logFile.Events[selectedLogIndex].Content;
+            }
+
             GUILayout.TextArea(selectedLogContents, Styles.MessageStyle);
             GUILayout.EndScrollView();
+        }
+
+        private static bool DrawLogSummary(LogFile.Event log, bool selected, bool even, float height)
+        {
+            GUIStyle style;
+
+            if (selected)
+                style = Styles.SelectedBackground;
+            else
+                style = even ? Styles.EvenBackground : Styles.OddBackground;
+
+            GUILayout.BeginHorizontal(style, GUILayout.Height(height));
+
+            bool clicked = false;
+
+            if (log.EventType == LogFile.EventTypes.Message)
+                clicked = GUILayout.Button(Styles.iconInfo, Styles.IconStyle) | clicked;
+            else
+                clicked = GUILayout.Button(Styles.iconError, Styles.IconStyle) | clicked;
+
+            clicked = GUILayout.Button(log.Summary, style, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)) | clicked;
+
+            GUILayout.EndHorizontal();
+
+            return clicked;
         }
     }
 }
