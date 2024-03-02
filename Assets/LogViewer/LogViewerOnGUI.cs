@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 namespace LogViewer
@@ -15,7 +16,7 @@ namespace LogViewer
 
         private LogFile logFile;
 
-        private LogFile.EventTypes visibleEventTypes = (LogFile.EventTypes)~0;
+        private LogFile.EventTypes visibleEventTypes = LogFile.EventTypes.Message | LogFile.EventTypes.Error;
         private Vector2 logListScrollPosition, logScrollPosition;
         private int selectedLogIndex = -1;
 
@@ -44,19 +45,18 @@ namespace LogViewer
         {
             GUILayout.BeginHorizontal();
 
-            int messageCount = logFile.MessageCount;
-            int errorCount = logFile.ErrorCount;
-
-            GUIStyle messageStyle = (visibleEventTypes & LogFile.EventTypes.Message) != 0 ? Styles.MiniButtonSelected : Styles.MiniButton;
-            GUIStyle errorStyle = (visibleEventTypes & LogFile.EventTypes.Error) != 0 ? Styles.MiniButtonSelected : Styles.MiniButton;
-
-            if (GUILayout.Button(new GUIContent(messageCount.ToString(), Styles.iconInfo.image), messageStyle, GUILayout.MinWidth(42), GUILayout.ExpandWidth(false)))
+            if (DrawEventTypeToggle(LogFile.EventTypes.Message, logFile.MessageCounts[LogFile.EventTypes.Message], (visibleEventTypes & LogFile.EventTypes.Message) != 0))
                 visibleEventTypes ^= LogFile.EventTypes.Message;
 
             GUILayout.Space(2);
 
-            if (GUILayout.Button(new GUIContent(errorCount.ToString(), Styles.iconError.image), errorStyle, GUILayout.MinWidth(42), GUILayout.ExpandWidth(false)))
+            if (DrawEventTypeToggle(LogFile.EventTypes.Error, logFile.MessageCounts[LogFile.EventTypes.Error], (visibleEventTypes & LogFile.EventTypes.Error) != 0))
                 visibleEventTypes ^= LogFile.EventTypes.Error;
+
+            GUILayout.Space(2);
+
+            if (DrawEventTypeToggle(LogFile.EventTypes.Culled, logFile.MessageCounts[LogFile.EventTypes.Culled], (visibleEventTypes & LogFile.EventTypes.Culled) != 0))
+                visibleEventTypes ^= LogFile.EventTypes.Culled;
 
             GUILayout.EndHorizontal();
 
@@ -123,18 +123,38 @@ namespace LogViewer
 
             GUILayout.BeginHorizontal(style, GUILayout.Height(height));
 
-            bool clicked = false;
+            GUIContent iconContent = log.EventType switch
+            {
+                LogFile.EventTypes.Message => Styles.iconInfo,
+                LogFile.EventTypes.Error => Styles.iconError,
+                _ => Styles.iconCulled
+            };
 
-            if (log.EventType == LogFile.EventTypes.Message)
-                clicked = GUILayout.Button(Styles.iconInfo, Styles.IconStyle) | clicked;
-            else
-                clicked = GUILayout.Button(Styles.iconError, Styles.IconStyle) | clicked;
+            bool clicked = GUILayout.Button(iconContent, Styles.IconStyle);
 
             clicked = GUILayout.Button(log.Summary, style, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)) | clicked;
 
             GUILayout.EndHorizontal();
 
             return clicked;
+        }
+
+        private static bool DrawEventTypeToggle(LogFile.EventTypes eventType, int count, bool selected)
+        {
+            GUIStyle style = selected ? Styles.MiniButtonSelected : Styles.MiniButton;
+
+            Texture texture = eventType switch
+            {
+                LogFile.EventTypes.Message => Styles.iconInfo.image,
+                LogFile.EventTypes.Error => Styles.iconError.image,
+                _ => Styles.iconCulled.image
+            };
+
+            return GUILayout.Button(
+                new GUIContent(count.ToString(), texture),
+                style,
+                GUILayout.MinWidth(42),
+                GUILayout.ExpandWidth(false));
         }
     }
 }

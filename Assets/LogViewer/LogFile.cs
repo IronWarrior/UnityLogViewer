@@ -12,13 +12,16 @@ namespace LogViewer
         { 
             None = 0,
             Message = 1,
-            Error = 2
+            Error = 2,
+            Culled = 4,
         }
 
         public class Event
         {
             public readonly string Summary, Content;
             public readonly EventTypes EventType;
+
+            private static readonly Regex regexEmptyIL2CPPLines = new(@"\[ line -\d+\]");
 
             public Event(string content)
             {
@@ -31,7 +34,12 @@ namespace LogViewer
                 if (splits.Length > 1)
                     Summary += $"\n{splits[1]}";
 
-                if (Content.Contains("Exception"))
+                if (string.IsNullOrEmpty(Content) ||
+                    regexEmptyIL2CPPLines.IsMatch(Content))
+                {
+                    EventType = EventTypes.Culled;
+                }
+                else if (Content.Contains("Exception"))
                 {
                     EventType = EventTypes.Error;
                 }
@@ -42,13 +50,12 @@ namespace LogViewer
             }
         }
 
-        public readonly int MessageCount;
-        public readonly int ErrorCount;
-
         public readonly string Raw;
 
-        public IReadOnlyList<Event> Events => events;
+        public IReadOnlyDictionary<EventTypes, int> MessageCounts => messageCounts;
+        private readonly Dictionary<EventTypes, int> messageCounts = new();        
 
+        public IReadOnlyList<Event> Events => events;
         private readonly List<Event> events = new();
 
         public static LogFile LoadFromFile(string filepath)
@@ -62,26 +69,18 @@ namespace LogViewer
         {
             Raw = raw;
 
-            Regex regexEmptyIL2CPPLines = new(@"\[ line -\d+\]");
+            foreach (EventTypes value in Enum.GetValues(typeof(EventTypes)))
+                messageCounts[value] = 0;
 
             string[] splits = raw.Split($"{Environment.NewLine}{Environment.NewLine}");
 
             foreach (string split in splits)
             {
-                if (string.IsNullOrEmpty(split) ||
-                    regexEmptyIL2CPPLines.IsMatch(split))
-                {
-                    continue;
-                }
-
                 Event logEvent = new(split);
 
                 events.Add(logEvent);
 
-                if (logEvent.EventType == EventTypes.Message)
-                    MessageCount++;
-                else
-                    ErrorCount++;
+                messageCounts[logEvent.EventType]++;
             }
         }
     }

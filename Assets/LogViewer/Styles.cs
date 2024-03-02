@@ -16,7 +16,7 @@ namespace LogViewer
         public static GUIStyle MessageStyle;
         public static GUIStyle CenteredMessage;
 
-        public static GUIContent iconInfo, iconError;
+        public static GUIContent iconInfo, iconError, iconCulled;
 
         public static bool Initialized { get; private set; }
 
@@ -26,6 +26,7 @@ namespace LogViewer
         {
             iconInfo = new GUIContent((Texture)Resources.Load("d_console.infoicon@2x"));
             iconError = new GUIContent((Texture)Resources.Load("d_console.erroricon@2x"));
+            iconCulled = new GUIContent((Texture)Resources.Load("console.culled"));
 
             Color textColor = new(0.824f, 0.824f, 0.824f);
 
