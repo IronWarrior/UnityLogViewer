@@ -64,27 +64,12 @@ namespace LogViewer
 
             const float entryHeight = 40f;
 
-            int startingIndex = Mathf.FloorToInt(logListScrollPosition.y / entryHeight);
-
-            int visibleLogs = 0;
-
             for (int i = 0; i < logFile.Events.Count; i++)
             {
                 LogFile.Event log = logFile.Events[i];
 
                 if ((log.EventType & visibleEventTypes) == 0)
                     continue;
-
-                if (i < startingIndex || i > startingIndex + 20)
-                {
-                    visibleLogs++;
-                    continue;
-                }
-                else if (i == startingIndex)
-                {
-                    GUILayout.Space(visibleLogs * entryHeight);
-                    visibleLogs = 0;
-                }
 
                 bool selected = selectedLogIndex == i;
                 bool even = i % 2 == 0;
@@ -94,8 +79,6 @@ namespace LogViewer
                     selectedLogIndex = i;
                 }               
             }
-
-            GUILayout.Space(entryHeight * visibleLogs);
 
             GUILayout.EndScrollView();
 
